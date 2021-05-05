@@ -1,0 +1,12 @@
+[package]
+name = "cada"
+version = "0.1.0"
+authors = ["Taylan Gökkaya <insomnimus19@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.33.3"
+cpal = "0.13.3"
+anyhow = "1.0.40"
+rdev = "0.5.1"
+enum-map = "1.0.0"

@@ -1,41 +1,40 @@
-use std::cell::RefCell;
+use std::sync::Mutex;
 
 pub struct Note {
-	sample: Vec<f32>,
-	paused: RefCell<bool>,
-	clock: RefCell<u32>,
+    sample: Vec<f32>,
+    paused: Mutex<bool>,
+    clock: Mutex<usize>,
 }
 
 impl Note {
-	pub fn new(samples: Vec<f32>) -> Self {
-		Self {
-			samples,
-			clock: RefCell::new(0u32),
-			paused: RefCell::new(true),
-		}
-	}
+    pub fn new(sample: Vec<f32>) -> Self {
+        Self {
+            sample,
+            clock: Mutex::new(0usize),
+            paused: Mutex::new(true),
+        }
+    }
 
-	pub fn next(&mut self) -> f32 {
-		if self.paused.try_borrow().unwrap_or(true) {
-			return 0;
-		}
-		let mut n = match self.clock.try_borrow_mut() {
-			Ok(val) => val,
-			_ => return 0,
-		};
-		if *n >= self.sample.len() {
-			*n = 0;
-		} else {
-			*n += 1;
-		}
-		self.samples[*n]
-	}
+    pub fn next(&self) -> f32 {
+        let paused = self.paused.lock().unwrap();
+        if *paused {
+            return 0f32;
+        }
+        let mut n = self.clock.lock().unwrap();
 
-	pub fn play(&self) {
-		self.paused.replace(false);
-	}
+        if *n >= self.sample.len() - 1 {
+            *n = 0;
+        } else {
+            *n += 1;
+        }
+        self.sample[*n]
+    }
 
-	pub fn mute(&self) {
-		self.paused.replace(true);
-	}
+    pub fn play(&self) {
+        *self.paused.lock().unwrap() = false;
+    }
+
+    pub fn mute(&self) {
+        *self.paused.lock().unwrap() = true;
+    }
 }
